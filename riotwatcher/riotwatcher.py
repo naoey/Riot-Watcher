@@ -1,6 +1,8 @@
 from collections import deque
 import time
 import requests
+from PIL import Image
+from io import BytesIO
 
 # Constants
 BRAZIL = 'br'
@@ -293,6 +295,7 @@ class RiotWatcher:
         )
         raise_status(r)
         return r
+
     def _observer_mode_request(self, url, proxy=None, **kwargs):
         if proxy is None:
             proxy = self.default_region
@@ -546,8 +549,8 @@ class RiotWatcher:
 
     def static_get_versions(self, region=None):
         return self._static_request('versions', region)
-
     # match-v2.2
+
     def _match_request(self, end_url, region, **kwargs):
         return self.base_request(
             'api/lol/{region}/v{version}/match/{end_url}'.format(
@@ -709,3 +712,16 @@ class RiotWatcher:
 
     def get_teams(self, team_ids, region=None):
         return self._team_request('{team_ids}'.format(team_ids=','.join(str(t) for t in team_ids)), region)
+
+    def get_champion_icon(self, champion_name=None, champion_id=None):
+        if not champion_name and not champion_id:
+            return None
+        if champion_name:
+            return Image.open(BytesIO(self.base_cdn_request(
+                url='img/champion/{name}.png'.format(name=champion_name.title())
+            ).content))
+        if champion_id:
+            champion = self.static_get_champion(champ_id=champion_id, champ_data='image')
+            return Image.open(BytesIO(self.base_cdn_request(
+                url='img/champion/{name}'.format(name=champion["image"]["full"])
+            ).content))
