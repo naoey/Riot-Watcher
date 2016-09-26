@@ -277,6 +277,22 @@ class RiotWatcher:
         raise_status(r)
         return r.json()
 
+    def base_cdn_request(self, url, **kwargs):
+        if url is None:
+            return None
+        args = {}
+        for k in kwargs:
+            if kwargs[k] is not None:
+                args[k] = kwargs[k]
+        r = requests.get(
+            'https://ddragon.leagueoflegends.com/cdn/{version}/{url}'.format(
+                version=api_versions['cdn'],
+                url=url
+            ),
+            params=args
+        )
+        raise_status(r)
+        return r
     def _observer_mode_request(self, url, proxy=None, **kwargs):
         if proxy is None:
             proxy = self.default_region
